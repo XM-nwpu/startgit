@@ -4,11 +4,11 @@
 #include <iterator>
 using namespace std;
 using std::list;
-class LargeNum
+class LargeNum//构造大数类
 {
 private:
 	//string str;
-	list <int> str;
+	list <int> str;//用双向链表储存大数
 	LargeNum add(const LargeNum  &num1, const LargeNum &num2)//两个正数相加
 	{
 		LargeNum result;
@@ -44,7 +44,7 @@ private:
 		if (flag == 1)result.str.push_front(1);
 		return result;
 	}
-	LargeNum sub(const LargeNum &num1, const LargeNum &num2)//大zheng数减去小zheng数,且前面去0；
+	LargeNum sub(const LargeNum &num1, const LargeNum &num2)//大正数减去小正数,且前面去0；
 	{
 		LargeNum result;
 		list<int>::const_iterator i = num1.str.end(), j = num2.str.end();
@@ -71,7 +71,7 @@ private:
 		}
 		return result;
 	}
-	LargeNum multi(const LargeNum &num1, const LargeNum &num2)//两个大正数相乘
+	LargeNum multi(const LargeNum &num1, const LargeNum &num2)//两个正数相乘
 	{
 		LargeNum result("0");
 		int m = 1, n = 1, k;
@@ -103,7 +103,7 @@ private:
 		}
 		return result;
 	}
-	LargeNum mod(const LargeNum &num1)//取模运算
+	LargeNum mod(const LargeNum &num1)//取模（绝对值）运算
 	{
 		LargeNum result = num1;
 		list<int>::const_iterator i = result.str.begin();
@@ -130,7 +130,7 @@ private:
 	}
 public:
 	LargeNum() {}//无参构造函数
-	LargeNum(string a) //字符串构造函数
+	LargeNum(string a) //字符串构造函数，负号存为'-'-'0',实际上就是-3
 	{ 
 		for (int i = 0; i < a.length(); ++i)
 		{
@@ -138,7 +138,7 @@ public:
 			str.push_back(a[i] - '0');
 		}
 	}
-	void PrintNumber()//打印数字，后面看情况搞成重构
+	void PrintNumber()//打印数字，首位如果是-3，则变成负号，后面看情况搞成重构
 	{
 		list <int>::const_iterator i=str.begin();
 		if (*i != -3)
@@ -219,7 +219,7 @@ public:
 			return result;
 		}
 	}
-	friend LargeNum operator*( LargeNum &num1, LargeNum &num2)
+	friend LargeNum operator*( LargeNum &num1, LargeNum &num2)//乘法运算符重载
 	{
 		LargeNum result;
 		list<int>::const_iterator i = num1.str.begin(), j = num2.str.begin();
@@ -234,7 +234,7 @@ public:
 			return result;
 		}
 	}
-	friend LargeNum operator/( LargeNum &num1, LargeNum &num2)//重构除法运算符
+	friend LargeNum operator/( LargeNum &num1, LargeNum &num2)//除法运算符重载
 	{
 		LargeNum result;
 		list<int>::const_iterator i = num1.str.begin(), j = num2.str.begin();
@@ -249,7 +249,7 @@ public:
 			return result;
 		}
 	}
-	friend LargeNum operator%( LargeNum &num1, LargeNum &num2)//重载取模（取余）预算符
+	friend LargeNum operator%( LargeNum &num1, LargeNum &num2)//取模（取余）预算符重载
 	{
 		LargeNum result;
 		result = num1 - (num1 / num2)*num2;
@@ -257,7 +257,7 @@ public:
 	}
 
 };
-int main()
+int main()//主函数对大数进行测试
 {
 	LargeNum numx("-123");
 	LargeNum numy("-10268");
