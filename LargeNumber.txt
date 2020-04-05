@@ -1,0 +1,271 @@
+#include <iostream>
+#include <string>
+#include <list>
+#include <iterator>
+using namespace std;
+using std::list;
+class LargeNum
+{
+private:
+	//string str;
+	list <int> str;
+	LargeNum add(const LargeNum  &num1, const LargeNum &num2)//两个正数相加
+	{
+		LargeNum result;
+		list <int>::const_iterator i = num1.str.end(), j = num2.str.end();
+		bool flag = 0;
+		while (i != num1.str.begin() && j != num2.str.begin())
+		{
+			i--; j--;
+			result.str.push_front((*i + *j + flag) % 10);
+			if ((*i + *j + flag) > 9) flag = 1;
+			else flag = 0;
+		}
+		if (j == num2.str.begin())
+		{
+			while (i != num1.str.begin())
+			{
+				i--;
+				result.str.push_front((*i + flag) % 10);
+				if ((*i + flag) > 9)flag = 1;
+				else flag = 0;
+			}
+		}
+		else
+		{
+			while (j != num2.str.begin())
+			{
+				j--;
+				result.str.push_front((*j + flag) % 10);
+				if ((*j + flag) > 9)flag = 1;
+				else flag = 0;
+			}
+		}
+		if (flag == 1)result.str.push_front(1);
+		return result;
+	}
+	LargeNum sub(const LargeNum &num1, const LargeNum &num2)//大zheng数减去小zheng数,且前面去0；
+	{
+		LargeNum result;
+		list<int>::const_iterator i = num1.str.end(), j = num2.str.end();
+		bool flag = 0;
+		while (j != num2.str.begin())
+		{
+			j--; i--;
+			result.str.push_front((10 + *i - *j - flag) % 10);
+			if ((10 + *i - *j - flag) > 9)flag = 0;
+			else flag = 1;
+		}
+		while (i != num1.str.begin())
+		{
+			i--;
+			result.str.push_front((10 + *i - flag) % 10);
+			if ((10 + *i - flag) > 9)flag = 0;
+			else flag = 1;
+		}
+		list<int>::const_iterator k = result.str.begin();//消去整数前的无意义的0；
+		while (*k == 0)
+		{
+			result.str.pop_front();
+			k = result.str.begin();
+		}
+		return result;
+	}
+	LargeNum multi(const LargeNum &num1, const LargeNum &num2)//两个大正数相乘
+	{
+		LargeNum result("0");
+		int m = 1, n = 1, k;
+		list<int>::const_iterator p = num1.str.end(), q = num2.str.end();
+		while (q != num2.str.begin())
+		{
+			q--;
+			while (p != num1.str.begin())
+			{
+				p--;
+				k = (*q)*m*(*p)*n;
+				LargeNum temp1(to_string(k));
+				//temp1.PrintNumber();
+				result = result.add(result, temp1);
+				n *= 10;
+			}
+			m *= 10; n = 1;
+			p = num1.str.end();
+		}
+		return result;
+	}
+	LargeNum divide(const LargeNum &num1, const LargeNum &num2)//正数除以正数
+	{
+		LargeNum result("0"), temp1("1"), temp2 = num1;
+		while (result.judgesize(temp2, num2) == 1)//判断大小
+		{
+			result = result.add(result, temp1);
+			temp2 = temp2.sub(temp2, num2);
+		}
+		return result;
+	}
+	LargeNum mod(const LargeNum &num1)//取模运算
+	{
+		LargeNum result = num1;
+		list<int>::const_iterator i = result.str.begin();
+		if (*i == (-3))
+		{
+			result.str.pop_front();
+			// cout << "YES" << endl;
+		}
+		return result;
+
+	}
+	bool judgesize(const LargeNum &num1, const LargeNum &num2)//判断两个大正数的大小，第一个数大或相等返回1,不考虑输入的数字前面有没有0，懒得dezero了
+	{
+		list<int>::const_iterator i = num1.str.begin(), j = num2.str.begin();
+		if (num1.str.size() > num2.str.size())return 1;
+		if (num1.str.size() < num2.str.size())return 0;
+		while (i != num1.str.end())
+		{
+			if (*i > *j)return 1;
+			if (*i < *j)return 0;
+			i++; j++;
+		}
+		return 1;
+	}
+public:
+	LargeNum() {}//无参构造函数
+	LargeNum(string a) //字符串构造函数
+	{ 
+		for (int i = 0; i < a.length(); ++i)
+		{
+			//str[i] = a[i]-'0';//这里为啥会报错
+			str.push_back(a[i] - '0');
+		}
+	}
+	void PrintNumber()//打印数字，后面看情况搞成重构
+	{
+		list <int>::const_iterator i=str.begin();
+		if (*i != -3)
+		{
+			for (i ; i != str.end(); ++i)
+				cout << *i;
+		}
+		else
+		{
+			cout << '-'; i++;
+			for (i; i != str.end(); ++i)
+				cout << *i;
+
+		}
+		cout << endl;
+	}
+	friend LargeNum operator+( LargeNum &num1, LargeNum &num2)//加法运算符重载
+	{
+		LargeNum result;
+		list<int>::const_iterator i = num1.str.begin(), j = num2.str.begin();
+		if ((*i != -3) && (*j != -3))return result.add(num1,num2);
+		if ((*i == -3) && (*j == -3))
+		{
+			result = result.add(num1.mod(num1), num2.mod(num2));
+			result.str.push_front(-3);
+			return result;
+		}
+		if ((*i != -3)&&(*j == -3))
+		{
+			if (result.judgesize(num1, num2.mod(num2))) return result = result.sub(num1, num2.mod(num2));
+			else
+			{
+				result = result.sub(num2.mod(num2), num1);
+				result.str.push_front(-3);
+				return result;
+			}
+		}
+		if ((*i == -3) && (*j != -3))
+		{
+			if (result.judgesize(num1.mod(num1), num2))
+			{
+				result = result.sub(num1.mod(num1), num2);
+				result.str.push_front(-3);
+				return result;
+			}
+			else return result = result.sub(num2, num1.mod(num1));
+		}
+	}
+	friend LargeNum operator-( LargeNum &num1, LargeNum &num2)//减法运算符重载
+	{
+		LargeNum result;
+		list<int>::const_iterator i = num1.str.begin(), j = num2.str.begin();
+		if ((*i != -3) && (*j != -3))
+		{
+			if (result.judgesize(num1, num2)) return result = result.sub(num1, num2);
+			else
+			{
+				result = result.sub(num2, num1);
+				result.str.push_front(-3);
+				return result;
+			}
+		}
+		if ((*i == -3) && (*j == -3))
+		{
+			if (result.judgesize(num1.mod(num1), num2.mod(num2)))
+			{
+				result = result.sub(num1.mod(num1), num2.mod(num2));
+				result.str.push_front(-3);
+				return result;
+			}
+			else return result = result.sub(num2.mod(num2), num1.mod(num1));
+		}
+		if ((*i != -3) && (*j == -3)) return result = result.add(num1, num2.mod(num2));
+		if ((*i == -3) && (*j != -3))
+		{
+			result = result.add(num1.mod(num1), num2);
+			result.str.push_front(-3);
+			return result;
+		}
+	}
+	friend LargeNum operator*( LargeNum &num1, LargeNum &num2)
+	{
+		LargeNum result;
+		list<int>::const_iterator i = num1.str.begin(), j = num2.str.begin();
+		if (((*i != -3) && (*j != -3)) || ((*i == -3) && (*j == -3)))
+		{
+			return result = result.multi(num1.mod(num1), num2.mod(num2));
+		}
+		else
+		{
+			result = result.multi(num1.mod(num1), num2.mod(num2));
+			result.str.push_front(-3);
+			return result;
+		}
+	}
+	friend LargeNum operator/( LargeNum &num1, LargeNum &num2)//重构除法运算符
+	{
+		LargeNum result;
+		list<int>::const_iterator i = num1.str.begin(), j = num2.str.begin();
+		if (((*i != -3) && (*j != -3)) || ((*i == -3) && (*j == -3)))
+		{
+			return result = result.divide(num1.mod(num1), num2.mod(num2));
+		}
+		else
+		{
+			result = result.divide(num1.mod(num1), num2.mod(num2));
+			result.str.push_front(-3);
+			return result;
+		}
+	}
+	friend LargeNum operator%( LargeNum &num1, LargeNum &num2)//重载取模（取余）预算符
+	{
+		LargeNum result;
+		result = num1 - (num1 / num2)*num2;
+		return result;
+	}
+
+};
+int main()
+{
+	LargeNum numx("-123");
+	LargeNum numy("-10268");
+	LargeNum numz;
+	numz = numx + numy; numz.PrintNumber();
+	numz = numx - numy; numz.PrintNumber();
+	numz = numx * numy; numz.PrintNumber();
+	numz = numx / numy; numz.PrintNumber();
+	numz = numx % numy; numz.PrintNumber();
+	return 0;	
+}
